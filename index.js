@@ -43,7 +43,8 @@ function main() {
     app.get('/upload', function(req,res) {
         historydata = JSON.stringify(req.query)
         fs.writeFileSync('history.txt',historydata)
-    })
+    	res.send('done!')
+	})
     app.get('/', function(req,res) {
         res.redirect(301, '/musicplayer')
     })
@@ -169,7 +170,7 @@ function videoplayer(req,res) {
         videoplayerhead =  `
             <label style="display: none" class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-pink" id="readerbtn" for="reader" multiple>打开</label>
             
-            <video width="80%"  height="80%"  autoplay id='play' controls class='mdui-center' autoplay></video>
+            <video width="80%"  height="80%"  autoplay id='play' controls class='mdui-center' ></video>
             <h3 id='current'></h3>
            
             <input type="file"   id="reader" style="display: none;" multiple/>
@@ -222,14 +223,22 @@ function videoplayer(req,res) {
                     function shunxu() {
                         mode = 'shunxu';
                     }
-                    function play(uuid) {
+                    function play(uuid, time) {
                         document.getElementById('current').innerHTML = '正在播放：' + document.getElementById(uuid).getAttribute('name')
-                        document.getElementById('play').src = document.getElementById(uuid).getAttribute('url')
-                        uid = Number(uuid)
-                        if (query.get('local') != 'true') {
+                        document.getElementById('play').src = document.getElementById(uuid).getAttribute('url') 
+                        // document.getElementById('play').currentTime = time
+                        
+                        //document.getElementById('play').play()                    
+                        //document.getElementById('play').onplay = function () { document.getElementById('play').currentTime = time }
+
+                    uid = Number(uuid) 
+
+		            if (query.get('local') != 'true') {
                         saver()
-                        }
                     }
+                    
+}
+	                //.document.addEventListener('touchend', function () { document.getElementById('play').play() })
                     document.getElementById("play").addEventListener('ended', function () {
                         if(mode=='shunxu') {
                             uid = uid + 1
@@ -240,36 +249,30 @@ function videoplayer(req,res) {
                         }
                     }, false);
                     if (query.get('history') == 'true')  {
+                        //document.getElementById('play').onplay = function () { document.getElementById('play').currentTime = time }
                         play(query.get('id'))
-                        document.getElementById('play').currentTime =  query.get('time')
+                        //document.getElementById('play').currentTime =  query.get('time')
+                        document.getElementById('play').addEventListener('playing', hhis)
                     }
+                        document.getElementById('play').addEventListener('canplay', function () { document.getElementById('play').play(); })
+                    function hhis() {
+                        console.log(query.get('time'))
+                        document.getElementById('play').currentTime =  query.get('time');
+                        document.getElementById('play').removeEventListener('playing', hhis)
+                    }
+
                     function save() {
                         xhr = new XMLHttpRequest()
                         name = query.get('name')
                         time = document.getElementById('play').currentTime
                         xhr.open("GET", \`/upload?name=\${name}&id=\${uid}&time=\${time}\`)
                         xhr.send()
-                        //console.log('savedone')
-                    }
-                    function vchange() {
-                        if (document.visibilityState == "hidden") {
-                            save()
-                            window.location.href = '/videoselector'
-                        }
+                        console.log('savedone')
                     }
                     function saver() {
                     if (query.get('local') != 'true') {
-                        save()
-                        window.removeEventListener("beforeunload", save)
-                        document.removeEventListener("visibilitychange", vchange)
-                        window.addEventListener("beforeunload", save)
-                        document.addEventListener("visibilitychange", vchange)
+                        setInterval(save, 90000)
                          }
-                    }
-                    function saverhelper() {
-                    //save()
-                    //window.removeEventListener("beforeunload", save)
-                    document.removeEventListener("visibilitychange", vchange)
                     }
 
             </script>
@@ -290,7 +293,7 @@ function navbar(active) {
         navbar.videoactive = activehtml
     }
     return `<div class="mdui-bottom-nav mdui-color-white">
-            <a href="/musicplayer" onclick="saverhelper()" class="mdui-ripple ${navbar.musicactive}">
+            <a href="/musicplayer"  class="mdui-ripple ${navbar.musicactive}">
                     <i class="mdui-icon material-icons">library_music</i>
                     <label>音乐</label>
             </a>
