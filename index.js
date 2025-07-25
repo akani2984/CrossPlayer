@@ -254,14 +254,15 @@ function videoplayer(req,res) {
                         play(query.get('id'))
                         //document.getElementById('play').currentTime =  query.get('time')
                         //document.getElementById('play').addEventListener('playing', hhis)
-                        hiss = setInterval(hhis , 100);
+                        
                     }
-                        document.getElementById('play').addEventListener('canplay', function () { document.getElementById('play').play(); })
-                    function hhis() {
+                        document.getElementById('play').addEventListener('canplay', function () { document.getElementById('play').play();  });
+                        document.getElementById('play').addEventListener('loadeddata', function () { hiss = setInterval(hhis, 1000)  })
+                        function hhis() {
                         console.log(query.get('time'))
                         document.getElementById('play').currentTime =  query.get('time');
                         if (document.getElementById('play').currentTime >= query.get('time')) {
-                            clearInterval(hiss)
+                            clearInterval(hiss);
                             }
                     }
 
